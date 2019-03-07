@@ -71,8 +71,11 @@ $ export ISCE_ROOT=/opt/isce-2.2.0/install
 $ export ISCE_HOME=$ISCE_ROOT/isce
 $ export PATH=$ISCE_HOME/bin:$ISCE_HOME/applications:$PATH
 $ export PYTHONPATH=$ISCE_ROOT:$ISCE_HOME/applications:$ISCE_HOME/component
-</pre>
-除了加入環境變數，也要設定cURL，ISCE會自動從EarthData下載干涉所需的DEM，我們要將下載帳密與權限設定好，才能在跑干涉圖時自動下載DEM。  
+</pre>  
+由於在計算干涉時，ISCE會自動從EarthData下載干涉所需的DEM，故我們需將連線與權限設定好，才不會執行錯誤。
+1. 首先至[arthData](https://urs.earthdata.nasa.gov/)申請帳密。
+
+我們要將下載帳密與權限設定好，才能在跑干涉圖時自動下載DEM。  
 在客戶端的部份，需設定.netrc。  
 <pre>
 $ cd ~
@@ -81,4 +84,11 @@ $ echo “machine urs.earthdata.nasa.gov login user_id passward user_password”
 $ chmod 0600 .netrc
 </pre>
 
+If you don't already have an earthdata username and password, you can set them at https://urs.earthdata.nasa.gov/ 
+If you already have an earthdata account, please ensure that you add LPDAAC applications to your account: 
+Login to earthdata here: https://urs.earthdata.nasa.gov/home 
+Click on my applications on the profile 
+Click on “Add More Applications” 
+Search for “LP DAAC” 
+Select “LP DAAC Data Pool” and “LP DAAC OpenDAP” and approve.
 
