@@ -84,3 +84,4 @@ $ echo “machine urs.earthdata.nasa.gov login user_id passward user_password”
 $ chmod 0600 .netrc
 </pre>
 
+以上都做完後，ISCE便安裝完成，可開始使用。
