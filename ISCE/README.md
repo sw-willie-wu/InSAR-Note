@@ -1,6 +1,7 @@
 # ISCE2.2.0 安裝說明
 
->最後更新：03/08/2019<br>
+>最後更新：03/08/2019
+
 ISCE官方說明：https://github.com/isce-framework/isce2
 
 ISCE安裝可分為三部份，分別為安裝前設定、安裝主程式與環境變數設定。  
