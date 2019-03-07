@@ -23,7 +23,7 @@ sudo apt update
 sudo apt upgrade
 sudo apt install -y gfortran libmotif-dev libhdf5-dev libfftw3-dev scons python3 cython3 python3-scipy python3-matplotlib python3-h5py python3-gdal python3-pip curl
 </pre>  
->因利用apt下載下來的GDAL版本會過舊無法使用，故GDAL需獨立安裝，本說明所使用版本為2.2.4。
+因利用apt下載下來的GDAL版本會過舊無法使用，故GDAL需獨立安裝，本說明所使用版本為2.2.4。
 <pre>
 wget http://download.osgeo.org/gdal/2.2.4/gdal-2.2.4.tar.gz
 tar -zxvf gdal-2.2.4.tar.gz
@@ -41,7 +41,7 @@ PRJ_SCONS_BUILD=/opt/isce-2.2.0/build
 PRJ_SCONS_INSTALL=/opt/isce-2.2.0/install/isce
 
 LIBPATH=/usr/lib/x86_64-linux-gnu /usr/lib /usr/lib/x86_64-linux-gnu/hdf5/serial
-CPPPATH=/usr/include/x86_64-linux-gnu /usr/include /usr/include/python3.6m /usr/include/hdf5/serial /usr/include/gdal
+CPPPATH=/usr/include/x86_64-linux-gnu /usr/include /usr/include/python3.6m /usr/include/hdf5/serial
 FORTRANPATH=/usr/include /usr/lib/gcc/x86_64-linux-gnu/7/finclude
 
 FORTRAN=/usr/bin/gfortran
@@ -54,5 +54,15 @@ MOTIFINCPATH = /usr/include/Xm
 X11INCPATH = /usr/include/X11
 
 ENABLE_CUDA=False
+</pre>  
+編輯完後，便能開始安裝程序。
+<pre>
+cd /opt/isce-2.2.0
+export PYTHONPATH=/opt/isce-2.2.0/configuration
+export SCONS_CONFIG_DIR=/opt/isce-2.2.0
+scons install --skipcheck
 </pre>
+## 3. 設定環境變數
+
+
 
