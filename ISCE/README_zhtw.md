@@ -32,4 +32,6 @@ sudo make
 sudo make install
 </pre>
 
+## 2. 安裝主程式
+
 
