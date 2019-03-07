@@ -17,13 +17,13 @@ ISCE是由Python3所架構的程式，它由許多函式庫組成，因此在安
 * GDAL >= 2.2
 * Motif、hdf5、cython3  
 
-<br>利用apt直接安裝（除了GDAL）。
+<br>利用apt安裝（除了GDAL）。
 <pre>
 sudo apt update
 sudo apt upgrade
 sudo apt install -y gfortran libmotif-dev libhdf5-dev libfftw3-dev scons python3 cython3 python3-scipy python3-matplotlib python3-h5py python3-gdal python3-pip curl
-</pre>
-因利用apt下載下來的GDAL版本會過舊無法使用，故GDAL需獨立安裝，本說明所使用版本為2.2.4。
+</pre>  
+>因利用apt下載下來的GDAL版本會過舊無法使用，故GDAL需獨立安裝，本說明所使用版本為2.2.4。
 <pre>
 wget http://download.osgeo.org/gdal/2.2.4/gdal-2.2.4.tar.gz
 tar -zxvf gdal-2.2.4.tar.gz
