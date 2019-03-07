@@ -10,7 +10,7 @@
 ## 1. 安裝前設定 
 ISCE是由Python3所架構的程式，它包含了許多函式庫
 
-[ISCE](http://example.com/ "Title")
+[ISCE](https://github.com/isce-framework/isce2 "Title")
 
 
 
