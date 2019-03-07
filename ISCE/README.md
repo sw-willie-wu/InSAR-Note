@@ -17,7 +17,7 @@ ISCE是由Python3所架構的程式，它由許多函式庫組成，因此在安
 * GDAL >= 2.2
 * Motif、hdf5、cython3  
 
-<br>利用apt直接安裝（除GDAL）。
+<br>利用apt直接安裝（除了GDAL）。
 <pre>
 sudo apt update
 sudo apt upgrade
@@ -33,5 +33,25 @@ sudo make install
 </pre>
 
 ## 2. 安裝主程式
+主程式是利用scons進行安裝，故需建立ISCE的scons設定檔，檔名為SConfigISCE。
+本說明是將ISCE安裝於 /opt 目錄下，可自行改變安裝位置。
+<pre>
+PRJ_SCONS_BUILD=/opt/isce-2.2.0/build
+PRJ_SCONS_INSTALL=/opt/isce-2.2.0/install/isce
 
+LIBPATH=/usr/lib/x86_64-linux-gnu /usr/lib /usr/lib/x86_64-linux-gnu/hdf5/serial
+CPPPATH=/usr/include/x86_64-linux-gnu /usr/include /usr/include/python3.6m /usr/include/hdf5/serial /usr/include/gdal
+FORTRANPATH=/usr/include /usr/lib/gcc/x86_64-linux-gnu/7/finclude
+
+FORTRAN=/usr/bin/gfortran
+CC=/usr/bin/gcc
+CXX=/usr/bin/g++
+
+MOTIFLIBPATH = /usr/lib/x86_64-linux-gnu
+X11LIBPATH = /usr/lib/x86_64-linux-gnu
+MOTIFINCPATH = /usr/include/Xm
+X11INCPATH = /usr/include/X11
+
+ENABLE_CUDA=False
+</pre>
 
