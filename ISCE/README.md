@@ -23,7 +23,7 @@ sudo apt update
 sudo apt upgrade
 sudo apt install -y gfortran libmotif-dev libhdf5-dev libfftw3-dev scons python3 cython3 python3-scipy python3-matplotlib python3-h5py python3-gdal python3-pip curl
 </pre>
-因apt下載下來的GDAL版本會過舊無法使用，故GDAL需獨立安裝，本說明所使用版本為2.2.4。
+因利用apt下載下來的GDAL版本會過舊無法使用，故GDAL需獨立安裝，本說明所使用版本為2.2.4。
 <pre>
 wget http://download.osgeo.org/gdal/2.2.4/gdal-2.2.4.tar.gz
 tar -zxvf gdal-2.2.4.tar.gz
