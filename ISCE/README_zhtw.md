@@ -15,7 +15,7 @@ ISCE是由Python3所架構的程式，它由許多函式庫組成，因此在安
 * scons >= 2.0.1
 * curl - 自動下載DEM
 * GDAL >= 2.2
-* Motif、hdf5、cython3
+* Motif、hdf5、cython3  
 除GDAL外，都能用apt直接安裝。
 <pre>
 sudo apt update
