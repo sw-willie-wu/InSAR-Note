@@ -74,7 +74,8 @@ $ export PYTHONPATH=$ISCE_ROOT:$ISCE_HOME/applications:$ISCE_HOME/component
 </pre>  
 由於在計算干涉時，ISCE會自動從EarthData下載干涉所需的DEM，故我們需將連線與權限設定好，才不會執行錯誤。
 1. 首先至[EarthData](https://urs.earthdata.nasa.gov/)申請帳密。
-2. 把LPDAAC的權限打開。（LP DAAC Data Pool 、 LP DAAC OpenDAP）
+2. 把LPDAAC的權限打開。（LP DAAC Data Pool 、 LP DAAC OpenDAP）  
+>Applications -> Authorized Apps -> Search LP DAAC -> APPROVE
 3. 設定.netrc。
 <pre>
 $ cd ~
