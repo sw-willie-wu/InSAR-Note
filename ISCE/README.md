@@ -33,9 +33,10 @@ sudo make install
 </pre>
 
 ## 2. 安裝主程式
-主程式是利用scons進行安裝，故需建立ISCE的scons設定檔，檔名為SConfigISCE。
+主程式是利用scons進行安裝，故需建立ISCE的scons設定檔，將檔名命名為SConfigISCE，並放置於isce2.2.0主目錄下。
 本說明是將ISCE安裝於 /opt 目錄下，可自行改變安裝位置。
 <pre>
+# SConfigISCE
 PRJ_SCONS_BUILD=/opt/isce-2.2.0/build
 PRJ_SCONS_INSTALL=/opt/isce-2.2.0/install/isce
 
