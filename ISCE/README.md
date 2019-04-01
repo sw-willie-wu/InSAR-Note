@@ -85,3 +85,6 @@ $ chmod 0600 .netrc
 </pre>
 
 以上都做完後，ISCE便安裝完成，可開始使用。
+
+
+insarApp.py insarApp.xml --steps
