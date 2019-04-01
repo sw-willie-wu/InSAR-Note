@@ -1,6 +1,6 @@
 # GIAnT 安裝說明
 
->最後更新：03/30/2019
+>最後更新：04/01/2019
 
 [GIAnT官方網站](http://earthdef.caltech.edu/projects/giant)
 
@@ -22,7 +22,8 @@ GIAnT是由Python2所架構的程式，它由許多函式庫組成，因此在�
 $ sudo apt update
 $ sudo apt upgrade
 $ sudo apt install -y python-dev python-pip
-$ sudo apt install -y python-numpy python-scipy cython python-matplotlib python-h5py zlib1g zlib1g-dev libpng12-0 libpng12-dev libjasper1 libjasper-dev libopenjpeg-dev libgrib-api-dev libgrib-api-tools python-mpltoolkits.basemap pyproj python-grib python-pywt python-lxml
+$ sudo apt install -y python-numpy python-scipy cython python-matplotlib python-h5py zlib1g zlib1g-dev libpng12-0 libpng12-dev libjasper1 libjasper-dev libopenjpeg-dev libgrib-api-dev libgrib-api-tools python-mpltoolkits.basemap python-grib python-pywt python-lxml
+$ pip install pyproj
 $ sudo apt install -y ffmpeg mencoder hdfview imagemagick
 $ sudo easy_install pyresample
 $ sudo easy_install pykml
