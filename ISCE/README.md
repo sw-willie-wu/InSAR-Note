@@ -1,6 +1,6 @@
 # ISCE2.2.0 安裝說明
 
->最後更新：03/08/2019
+>最後更新：05/28/2019
 
 [ISCE官方GitHub](https://github.com/isce-framework/isce2)
 
@@ -43,7 +43,7 @@ PRJ_SCONS_BUILD=/opt/isce-2.2.0/build
 PRJ_SCONS_INSTALL=/opt/isce-2.2.0/install/isce
 
 LIBPATH=/usr/lib/x86_64-linux-gnu /usr/lib /usr/lib/x86_64-linux-gnu/hdf5/serial
-CPPPATH=/usr/include/x86_64-linux-gnu /usr/include /usr/include/python3.6m /usr/include/hdf5/serial
+CPPPATH=/usr/include/x86_64-linux-gnu /usr/include /usr/include/python3.6m /usr/include/hdf5/serial /usr/include/gdal
 FORTRANPATH=/usr/include /usr/lib/gcc/x86_64-linux-gnu/7/finclude
 
 FORTRAN=/usr/bin/gfortran
@@ -76,7 +76,7 @@ $ export PYTHONPATH=$ISCE_ROOT:$ISCE_HOME/applications:$ISCE_HOME/component
 1. 首先至[EarthData](https://urs.earthdata.nasa.gov/)申請帳密。
 2. 把LPDAAC的權限打開。（LP DAAC Data Pool 、 LP DAAC OpenDAP）  
 >Applications -> Authorized Apps -> Search LP DAAC -> APPROVE
-3. 設定.netrc。
+3. 設定.netrc (user_id 與 user_password 為使用者自行輸入)。
 <pre>
 $ cd ~
 $ touch .netrc
