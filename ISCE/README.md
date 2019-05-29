@@ -30,6 +30,7 @@ $ sudo apt install -y gfortran libmotif-dev libhdf5-dev libfftw3-dev scons pytho
 <pre>
 $ wget http://download.osgeo.org/gdal/2.2.4/gdal-2.2.4.tar.gz
 $ tar -zxvf gdal-2.2.4.tar.gz
+$ 
 $ sudo ./configure
 $ sudo make
 $ sudo make install
