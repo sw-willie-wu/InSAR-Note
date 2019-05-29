@@ -45,7 +45,7 @@ PRJ_SCONS_BUILD=/opt/isce-2.2.0/build
 PRJ_SCONS_INSTALL=/opt/isce-2.2.0/install/isce
 
 LIBPATH=/usr/lib/x86_64-linux-gnu /usr/lib /usr/lib/x86_64-linux-gnu/hdf5/serial
-CPPPATH=/usr/include/x86_64-linux-gnu /usr/include /usr/include/python3.6m /usr/include/hdf5/serial /usr/include/gdal
+CPPPATH=/usr/include/x86_64-linux-gnu /usr/include /usr/include/python3.6m /usr/include/hdf5/serial
 FORTRANPATH=/usr/include /usr/lib/gcc/x86_64-linux-gnu/7/finclude
 
 FORTRAN=/usr/bin/gfortran
