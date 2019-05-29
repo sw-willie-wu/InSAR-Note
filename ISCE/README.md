@@ -5,7 +5,7 @@
 [ISCE官方GitHub](https://github.com/isce-framework/isce2)
 
 ISCE安裝可分為三部份，分別為安裝前設定、安裝主程式與環境變數設定。  
-本說明是將ISCE2.2.0安裝於Ubuntu16.04上，其他版本與系統可能會有不相容的問題，請見諒。
+本說明是將ISCE2.2.0安裝於Ubuntu16.04上，其他版本與系統可能會有不相容的問題，請見諒。  
 (已於Ubuntu18.04成功安裝)
 <br><br>
 
