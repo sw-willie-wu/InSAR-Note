@@ -2,11 +2,9 @@
 '''
 Title: ISCE processing program
 Author: S.W.
-Version: 2.1
-
+Version: 2.2
 Describe:
 The program based on python3, processing ALOS images(2000 later) with ISCE tools.
-
 '''
 
 import shutil
@@ -148,7 +146,7 @@ def readtable(table):
             info = data[i].split()
             try:
                 infoYMD = info[0].split('_')
-                record[i] = [infoYMD[0], infoYMD[1], info[1], info[2]]
+                record[i] = [int(infoYMD[0]), int(infoYMD[1]), info[1], info[2]]
             except:
                 None
     if sum(record[0]) == 0:
@@ -327,6 +325,46 @@ def runinsar(time, space, TStable, imageHome, DEM, polor, unwrapMethod):  # give
     bash.close()
 
 
+def draw(dataDate, TStable, time, space): #draw the pairs within Time-Space baseline
+    table = readtable(TStable)
+    day = {}
+    with open(dataDate, 'r') as f:
+        dates = f.read().strip().split()
+        ref_date = str2date(dates[0])
+    
+    for i in range(len(table)):
+        date1 = str2date(str(int(table[i,0])))
+        date2 = str2date(str(int(table[i,1])))
+        day_diff = table[i,2]
+        Bperp = table[i,3]
+        if date1 == ref_date:
+            day[date1] = 0
+            day[date2] = Bperp
+        if abs(Bperp) <= space and day_diff <= time:
+            plt.plot([date1,date2], [day[date1],day[date2]], 'c-')
+
+    X = list(day.keys())
+    Y = [day[i] for i in X]
+    plt.plot(X,Y,'yo', label='ALOS image')
+    plt.plot([date1,date2], [day[date1],day[date2]], 'c-', label='Pair')
+    plt.legend(loc='lower right')
+    plt.title('Temporal-Spatial Baseline (base on 2007.08.18)')
+    plt.xlabel('year')
+    plt.ylabel('perpendicular baseline (m)')
+    #plt.grid(linestyle='-.')
+    plt.show()
+
+
+def ifglist(TStable):
+    table = readtable(TStable)
+    with open('ifg.list', 'w') as f:
+        for i in range(len(table)):
+            date1 = table[i,0]
+            date2 = table[i,1]
+            Bperp = table[i,3]
+            f.write('%-10d%-10d%-12.4f%-4s\n' %(date1, date2, Bperp, 'ALOS'))
+
+
 
 def log(logfile):
     os.system('echo "  = = = = = = = = = = = = = = = = = = = = = = = = = = =" > runISCE.log')
@@ -341,10 +379,12 @@ def log(logfile):
 if __name__ == '__main__':
     root=os.getcwd()
     log=os.path.join(root, 'runISCE.log')
-    # preproc(dataDate, imageHome, DEM, polor)
-    # runscript(root, '01_calBperp.sh')
-    # calbperp('Bperp', dataDate)
-    # geobox('TStable.txt', imageHome, DEM, polor, unwrapMethod)
-    # runscript(root, '02_geobox.sh')
+    #preproc(dataDate, imageHome, DEM, polor)
+    #runscript(root, '01_calBperp.sh')
+    #calbperp('Bperp', dataDate)
+    #geobox('TStable.txt', imageHome, DEM, polor, unwrapMethod)
+    #runscript(root, '02_geobox.sh')
     #runinsar(max_daydiff, max_perpendicular_baseline, 'TStable.txt', imageHome, DEM, polor, unwrapMethod)
-    runscript(root, '03_runinsar.sh')
+    #runscript(root, '03_runinsar.sh')
+    #draw(dataDate, 'TStable.txt', max_daydiff, max_perpendicular_baseline)
+    #ifglist('TStable.txt')
