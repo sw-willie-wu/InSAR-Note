@@ -2,7 +2,7 @@
 '''
 Title: ISCE processing program
 Author: S.W.
-Version: 2.0
+Version: 2.1
 
 Describe:
 The program based on python3, processing ALOS images(2000 later) with ISCE tools.
@@ -102,6 +102,37 @@ def xml_tmp2():  # template of insarApp,xml
             <property name="unwrap">True</property>
             <property name="unwrappername">{unwrapMethod}</property>
             <property name="geocode list">['filt_topophase.flat']</property>
+    </component>
+</insarApp>"""
+    return xml_tmp
+
+
+def xml_tmp3():  # the isce xml template
+    xml_tmp = """<?xml version="1.0" encoding="UTF-8"?>
+<insarApp>
+    <component name="insar">
+        <property name="Sensor name">ALOS</property>
+        <property name="doppler method">useDOPIQ</property>
+        <property name="posting"> 25 </property>
+        <component name="master">
+            <property name="IMAGEFILE">{masterIMG}</property>
+            <property name="LEADERFILE">{masterLED}</property>
+            <property name="OUTPUT">{masterDate}.raw</property>
+            {mFBD2FBS}
+        </component>
+        <component name="slave">
+            <property name="IMAGEFILE">{slaveIMG}</property>
+            <property name="LEADERFILE">{slaveLED}</property>
+            <property name="OUTPUT">{slaveDate}.raw</property>
+            {sFBD2FBS}
+        </component>
+        <component name="Dem">
+            <catalog>{DEM}</catalog>
+        </component>
+        <property name="unwrap">True</property>
+        <property name="unwrappername">{unwrapMethod}</property>
+        <property name="geocode bounding box">[22.810402, 23.835562, 120.240019, 121.170132]</property>
+		<property name="geocode list">['filt_topophase.flat', 'los.rdr', 'topophase.cor', 'phsig.cor']</property>
     </component>
 </insarApp>"""
     return xml_tmp
@@ -230,14 +261,14 @@ def geobox(TStable, imageHome, DEM, polor, unwrapMethod):
     imagePath = os.listdir(imageHome)
     for path in imagePath:
         if path.find(ref_master) != -1:
-            if i[-1] == '3':
+            if path[-1] == '3':
                 master = os.path.join(imageHome, path)
                 mfbd2fbs = True
             else:
                 master = os.path.join(imageHome, path)
                 mfbd2fbs = False
         if path.find(ref_slave) != -1:
-            if i[-1] == '3':
+            if path[-1] == '3':
                 slave = os.path.join(imageHome, path)
                 sfbd2fbs = True
             else:
@@ -255,6 +286,48 @@ def geobox(TStable, imageHome, DEM, polor, unwrapMethod):
     bash.close()
 
 
+def runinsar(time, space, TStable, imageHome, DEM, polor, unwrapMethod):  # give threshold
+    global root, log
+    if not os.path.isdir('isce_out'):
+        os.mkdir('isce_out')
+    bash = open('03_runinsar.sh', 'w')
+    table = readtable(TStable)
+    temporal = list(table[:, 2])
+    spatial = list(table[:, 3])
+    imagePath=os.listdir(imageHome)
+    for i in range(len(temporal)):
+        if temporal[i] < time and spatial[i] < space:
+            ref_master = str(int(table[i, 0]))
+            ref_slave = str(int(table[i, 1]))
+            pairname=ref_master+'_'+ref_slave
+            pairdir=os.path.join(root, 'isce_out/'+pairname)
+            os.mkdir(pairdir)
+            for path in imagePath:
+                if path.find(ref_master) != -1:
+                    if path[-1] == '3':
+                        master=os.path.join(imageHome, path)
+                        mfbd2fbs=True
+                    else:
+                        master=os.path.join(imageHome, path)
+                        mfbd2fbs=False
+                if path.find(ref_slave) != -1:
+                    if path[-1] == '3':
+                        slave=os.path.join(imageHome, path)
+                        sfbd2fbs=True
+                    else:
+                        slave=os.path.join(imageHome, path)
+                        sfbd2fbs=False
+            with open(pairdir+'/insarApp.xml', 'w') as f:
+                f.write(xml_tmp3().format(masterIMG=imagedata('IMG', master, polor), masterLED=imagedata('LED', master, polor), masterDate=ref_master[2:],
+                                          slaveIMG=imagedata('IMG', slave, polor), slaveLED=imagedata('LED', slave, polor), slaveDate=ref_slave[2:],
+                                          DEM=DEM, unwrapMethod=unwrapMethod, mFBD2FBS=fbd2fbs(mfbd2fbs), sFBD2FBS=fbd2fbs(sfbd2fbs)))
+            bash.write('cd '+pairdir+'\n')
+            bash.write('insarApp.py insarApp.xml --steps\n')
+            bash.write('echo " - %s processing end" >> %s\n' % (pairdir, log))
+    bash.close()
+
+
+
 def log(logfile):
     os.system('echo "  = = = = = = = = = = = = = = = = = = = = = = = = = = =" > runISCE.log')
     os.system('echo "  |                                                   |" >> runISCE.log')
@@ -266,10 +339,12 @@ def log(logfile):
 
 
 if __name__ == '__main__':
-    root = os.getcwd()
-    log = os.path.join(root, 'runISCE.log')
-    #preproc(dataDate, imageHome, DEM, polor)
-    #runscript(root, '01_calBperp.sh')
-    calbperp('Bperp', dataDate)
-    geobox('TStable.txt', imageHome, DEM, polor, unwrapMethod)
-    runscript(root, '02_geobox.sh')
+    root=os.getcwd()
+    log=os.path.join(root, 'runISCE.log')
+    # preproc(dataDate, imageHome, DEM, polor)
+    # runscript(root, '01_calBperp.sh')
+    # calbperp('Bperp', dataDate)
+    # geobox('TStable.txt', imageHome, DEM, polor, unwrapMethod)
+    # runscript(root, '02_geobox.sh')
+    #runinsar(max_daydiff, max_perpendicular_baseline, 'TStable.txt', imageHome, DEM, polor, unwrapMethod)
+    runscript(root, '03_runinsar.sh')
