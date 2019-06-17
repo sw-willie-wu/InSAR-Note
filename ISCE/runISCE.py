@@ -2,7 +2,7 @@
 '''
 Title: ISCE processing program
 Author: S.W.
-Version: 2.2
+Version: 2.3
 Describe:
 The program based on python3, processing ALOS images(2000 later) with ISCE tools.
 '''
@@ -12,6 +12,7 @@ import sys
 import os
 import numpy as np
 import matplotlib.pyplot as plt
+import xml.etree.ElementTree as ET
 from datetime import datetime
 from itertools import combinations
 
@@ -97,8 +98,7 @@ def xml_tmp2():  # template of insarApp,xml
         <component name="Dem">
             <catalog>{DEM}</catalog>
         </component>
-            <property name="unwrap">True</property>
-            <property name="unwrappername">{unwrapMethod}</property>
+            <property name="unwrap">False</property>
             <property name="geocode list">['filt_topophase.flat']</property>
     </component>
 </insarApp>"""
@@ -134,6 +134,55 @@ def xml_tmp3():  # the isce xml template
     </component>
 </insarApp>"""
     return xml_tmp
+
+
+def userfn_tmp():
+    userfn = '''import os, sys
+
+def makefnames(date1,date2,sensor):
+    dirname = '{DIR}'     #Relative path provided. Change to absolute path if needed.
+    root = os.path.join(dirname, date1+'_'+date2)
+    iname = os.path.join(root, 'filt_topophase.unw.geo')
+    cname = os.path.join(root, 'topophase.cor.geo')
+    return iname,cname
+
+def timedict():
+    rep = [['ISPLINES',[3],[48]]]
+    return rep'''
+    return userfn
+
+
+def example_tmp():
+    example = '''<insarProc>
+    <master>
+        <frame>
+            <SENSING_START>{UTC}</SENSING_START>
+        </frame>
+    </master>
+    <runTopo>
+        <inputs>
+            <RADAR_WAVELENGTH>{wavelength}</RADAR_WAVELENGTH>
+            <PEG_HEADING>{heading}</PEG_HEADING>
+        </inputs>
+    </runTopo>
+    <runGeocode>
+        <outputs>
+            <GEO_WIDTH>{width}</GEO_WIDTH>
+            <GEO_LENGTH>{length}</GEO_LENGTH>
+        </outputs>
+    </runGeocode>
+</insarProc>'''
+    return example
+
+def readxml(xml):
+    tree = ET.ElementTree(file=xml)
+    return tree
+
+
+def xml_kv(xml, nodes):
+    for elem in xml.iterfind(nodes):
+        text = elem.text.strip()
+    return text
 
 
 def readtable(table):
@@ -276,7 +325,7 @@ def geobox(TStable, imageHome, DEM, polor, unwrapMethod):
     with open(refgeo+'/insarApp.xml', 'w') as f:
         f.write(xml_tmp2().format(masterIMG=imagedata('IMG', master, polor), masterLED=imagedata('LED', master, polor), masterDate=ref_master[2:],
                                   slaveIMG=imagedata('IMG', slave, polor), slaveLED=imagedata('LED', slave, polor), slaveDate=ref_slave[2:],
-                                  DEM=DEM, unwrapMethod=unwrapMethod, mFBD2FBS=fbd2fbs(mfbd2fbs), sFBD2FBS=fbd2fbs(sfbd2fbs)))
+                                  DEM=DEM, mFBD2FBS=fbd2fbs(mfbd2fbs), sFBD2FBS=fbd2fbs(sfbd2fbs)))
     bash = open('02_geobox.sh', 'w')
     bash.write('cd %s\n' % refgeo)
     bash.write('insarApp.py insarApp.xml --steps\n')
@@ -294,7 +343,7 @@ def runinsar(time, space, TStable, imageHome, DEM, polor, unwrapMethod):  # give
     spatial = list(table[:, 3])
     imagePath=os.listdir(imageHome)
     for i in range(len(temporal)):
-        if temporal[i] < time and spatial[i] < space:
+        if temporal[i] < time and abs(spatial[i]) < space:
             ref_master = str(int(table[i, 0]))
             ref_slave = str(int(table[i, 1]))
             pairname=ref_master+'_'+ref_slave
@@ -340,7 +389,7 @@ def draw(dataDate, TStable, time, space): #draw the pairs within Time-Space base
         if date1 == ref_date:
             day[date1] = 0
             day[date2] = Bperp
-        if abs(Bperp) <= space and day_diff <= time:
+        if abs(Bperp) < space and day_diff < time:
             plt.plot([date1,date2], [day[date1],day[date2]], 'c-')
 
     X = list(day.keys())
@@ -355,15 +404,34 @@ def draw(dataDate, TStable, time, space): #draw the pairs within Time-Space base
     plt.show()
 
 
-def ifglist(TStable):
+def ifglist(TStable, time, space):
+    if not os.path.isdir('2giant'):
+        os.mkdir('2giant')
     table = readtable(TStable)
-    with open('ifg.list', 'w') as f:
+    with open('2giant/ifg.list', 'w') as f:
         for i in range(len(table)):
             date1 = table[i,0]
             date2 = table[i,1]
+            day_diff = table[i,2]
             Bperp = table[i,3]
-            f.write('%-10d%-10d%-12.4f%-4s\n' %(date1, date2, Bperp, 'ALOS'))
+            if abs(Bperp) <= space and day_diff <= time:
+                f.write('%-10d%-10d%-12.4f%-4s\n' %(date1, date2, Bperp, 'ALOS'))
 
+def isce2giant():
+    if not os.path.isdir('2giant'):
+        os.mkdir('2giant')    
+    with open('2giant/userfn.py', 'w') as f:
+        f.write(userfn_tmp().format(DIR=os.path.join(root, 'isce_out')))
+    xml1 = readxml(os.path.join(root+'/isce_out', os.listdir('isce_out')[0])+'/insarProc.xml')
+    xml2 = readxml(os.path.join(root+'/isce_out', os.listdir('isce_out')[0])+'/filt_topophase.flat.geo.xml')
+    with open('2giant/example.xml', 'w') as f:
+        UTC = xml_kv(xml1, 'master/frame/sensing_start')
+        wavelength = xml_kv(xml1, 'runTopo/inputs/radar_wavelength')
+        heading = xml_kv(xml1, 'runTopo/inputs/peg_heading')
+        width = xml_kv(xml2, 'property[@name="width"]/value')
+        length = xml_kv(xml2, 'property[@name="length"]/value')
+        f.write(example_tmp().format(UTC=UTC, wavelength=wavelength, heading=heading, width=width, length=length))
+      
 
 
 def log(logfile):
@@ -384,7 +452,8 @@ if __name__ == '__main__':
     #calbperp('Bperp', dataDate)
     #geobox('TStable.txt', imageHome, DEM, polor, unwrapMethod)
     #runscript(root, '02_geobox.sh')
-    #runinsar(max_daydiff, max_perpendicular_baseline, 'TStable.txt', imageHome, DEM, polor, unwrapMethod)
+    runinsar(max_daydiff, max_perpendicular_baseline, 'TStable.txt', imageHome, DEM, polor, unwrapMethod)
     #runscript(root, '03_runinsar.sh')
     #draw(dataDate, 'TStable.txt', max_daydiff, max_perpendicular_baseline)
-    #ifglist('TStable.txt')
+    #ifglist('TStable.txt', max_daydiff, max_perpendicular_baseline)
+    #isce2giant()
