@@ -2,9 +2,12 @@
 '''
 Title: ISCE processing program
 Author: S.W.
-Version: 2.3
+Version: 2.4
 Describe:
 The program based on python3, processing ALOS images(2000 later) with ISCE tools.
+
+
+need change geobox manully in xml_tmp3.
 '''
 
 import shutil
@@ -17,9 +20,9 @@ from datetime import datetime
 from itertools import combinations
 
 # Initial Data
-imageHome = '/media/willie/DDD/ALOS_AVNIR-2PALSAR_data/20161224/'
+imageHome = '/home/willie/data/Images/ALOS_AVNIR-2PALSAR_data/20190620/P444F480/'
 dataDate = 'Data_date.txt'
-DEM = '/media/willie/DDD/SAR/Data/DTM/demLat_N22_N25_Lon_E120_E123.dem.wgs84.xml'
+DEM = '/home/willie/data/DTM/demLat_N22_N25_Lon_E120_E123.dem.wgs84.xml'
 polor = 'HH'
 unwrapMethod = 'snaphu_mcf'
 max_daydiff = 1000
@@ -129,8 +132,8 @@ def xml_tmp3():  # the isce xml template
         </component>
         <property name="unwrap">True</property>
         <property name="unwrappername">{unwrapMethod}</property>
-        <property name="geocode bounding box">[22.810402, 23.835562, 120.240019, 121.170132]</property>
-		<property name="geocode list">['filt_topophase.flat', 'los.rdr', 'topophase.cor', 'phsig.cor']</property>
+        <property name="geocode bounding box">[24.3013627, 25.3170470, 121.0126992, 121.9571520]</property>
+        <property name="geocode list">['filt_topophase.unw', 'filt_topophase.flat', 'lat.rdr', 'lon.rdr', 'topophase.cor']</property>
     </component>
 </insarApp>"""
     return xml_tmp
@@ -138,18 +141,40 @@ def xml_tmp3():  # the isce xml template
 
 def userfn_tmp():
     userfn = '''import os, sys
-
 def makefnames(date1,date2,sensor):
     dirname = '{DIR}'     #Relative path provided. Change to absolute path if needed.
     root = os.path.join(dirname, date1+'_'+date2)
     iname = os.path.join(root, 'filt_topophase.unw.geo')
     cname = os.path.join(root, 'topophase.cor.geo')
     return iname,cname
-
 def timedict():
     rep = [['ISPLINES',[3],[48]]]
     return rep'''
     return userfn
+
+def prepfn_tmp():
+    prepfn='''import tsinsar as ts
+import argparse
+import numpy as np
+
+def parse():
+    parser= argparse.ArgumentParser(description='Preparation of XML files for setting up the processing chain. Check tsinsar/tsxml.py for details on the parameters.')
+    parser.parse_args()
+
+parse()
+g = ts.TSXML('data')
+g.prepare_data_xml('example.xml',proc='ISCE',xlim=[0, {width}],ylim=[0,{length}], latfile='lat.rdr.geo',lonfile='lon.rdr.geo',hgtfile='demfloat32.crop',inc=21.,cohth=0.1,chgendian='False',masktype='f4',unwfmt='RMG',corfmt='RMG',demfmt='FLT')
+g.writexml('data.xml')
+
+g = ts.TSXML('params')
+#g.prepare_sbas_xml(nvalid=10,netramp=True,atmos='ECMWF',demerr=False,uwcheck=False,regu=True,masterdate='{date0}',filt=0.4)
+g.prepare_sbas_xml(nvalid=10,netramp=True,atmos='TROPO',demerr=False,uwcheck=False,regu=True,masterdate='{date0}',filt=0.4,tropomin=2,tropomax=5)
+g.writexml('sbas.xml')
+
+#g = ts.TSXML('params')
+#g.prepare_mints_xml(netramp=True,atmos='ECMWF',demerr=False,uwcheck=False,regu=True,masterdate='20070818')
+#g.writexml('mints.xml')'''
+    return prepfn
 
 
 def example_tmp():
@@ -173,6 +198,21 @@ def example_tmp():
     </runGeocode>
 </insarProc>'''
     return example
+
+def rsc_tmp():
+    rsc='''WIDTH {width}
+FILE_LENGTH {length}
+LAT_REF1 {LU_lat}
+LON_REF1 {LU_lon}
+LAT_REF2 {RD_lat}
+LON_REF2 (RD_lat)
+LAT_REF3 {LU_lat}
+LON_REF3 {LU_lon}
+LAT_REF4 {RD_lat}
+LON_REF4 {RD_lon}
+RANGE_PIXEL_SIZE 30
+AZIMUTH_PIXEL_SIZE 30'''
+    return rsc
 
 def readxml(xml):
     tree = ET.ElementTree(file=xml)
@@ -348,7 +388,8 @@ def runinsar(time, space, TStable, imageHome, DEM, polor, unwrapMethod):  # give
             ref_slave = str(int(table[i, 1]))
             pairname=ref_master+'_'+ref_slave
             pairdir=os.path.join(root, 'isce_out/'+pairname)
-            os.mkdir(pairdir)
+            if not os.path.isdir(pairdir):
+                os.mkdir(pairdir)
             for path in imagePath:
                 if path.find(ref_master) != -1:
                     if path[-1] == '3':
@@ -380,7 +421,7 @@ def draw(dataDate, TStable, time, space): #draw the pairs within Time-Space base
     with open(dataDate, 'r') as f:
         dates = f.read().strip().split()
         ref_date = str2date(dates[0])
-    
+
     for i in range(len(table)):
         date1 = str2date(str(int(table[i,0])))
         date2 = str2date(str(int(table[i,1])))
@@ -397,11 +438,13 @@ def draw(dataDate, TStable, time, space): #draw the pairs within Time-Space base
     plt.plot(X,Y,'yo', label='ALOS image')
     plt.plot([date1,date2], [day[date1],day[date2]], 'c-', label='Pair')
     plt.legend(loc='lower right')
-    plt.title('Temporal-Spatial Baseline (base on 2007.08.18)')
+    d0 = str(int(table[0,0]))
+    plt.title('Temporal-Spatial Baseline (base on %s.%s.%s)'%(d0[0:4],d0[4:6],d0[6:8]))
     plt.xlabel('year')
     plt.ylabel('perpendicular baseline (m)')
-    #plt.grid(linestyle='-.')
-    plt.show()
+    plt.grid(linestyle='-.')
+    #plt.savefig('TS_baseline.png')
+    #plt.show()
 
 
 def ifglist(TStable, time, space):
@@ -417,13 +460,19 @@ def ifglist(TStable, time, space):
             if abs(Bperp) <= space and day_diff <= time:
                 f.write('%-10d%-10d%-12.4f%-4s\n' %(date1, date2, Bperp, 'ALOS'))
 
-def isce2giant():
+def isce2giant(TStable):
     if not os.path.isdir('2giant'):
-        os.mkdir('2giant')    
+        os.mkdir('2giant')
     with open('2giant/userfn.py', 'w') as f:
         f.write(userfn_tmp().format(DIR=os.path.join(root, 'isce_out')))
     xml1 = readxml(os.path.join(root+'/isce_out', os.listdir('isce_out')[0])+'/insarProc.xml')
     xml2 = readxml(os.path.join(root+'/isce_out', os.listdir('isce_out')[0])+'/filt_topophase.flat.geo.xml')
+    with open('2giant/prepxml.py', 'w') as f:
+        table = readtable(TStable)
+        date0 = str(int(table[0,0]))
+        width = xml_kv(xml2, 'property[@name="width"]/value')
+        length = xml_kv(xml2, 'property[@name="length"]/value')
+        f.write(prepfn_tmp().format(width=width, length=length, date0=date0))
     with open('2giant/example.xml', 'w') as f:
         UTC = xml_kv(xml1, 'master/frame/sensing_start')
         wavelength = xml_kv(xml1, 'runTopo/inputs/radar_wavelength')
@@ -431,7 +480,25 @@ def isce2giant():
         width = xml_kv(xml2, 'property[@name="width"]/value')
         length = xml_kv(xml2, 'property[@name="length"]/value')
         f.write(example_tmp().format(UTC=UTC, wavelength=wavelength, heading=heading, width=width, length=length))
-      
+    shutil.copy(os.path.join(root+'/isce_out', os.listdir('isce_out')[0])+'/lon.rdr.geo', os.path.join(root,'2giant'))
+    shutil.copy(os.path.join(root+'/isce_out', os.listdir('isce_out')[0])+'/lat.rdr.geo', os.path.join(root,'2giant'))
+    shutil.copy(os.path.join(root+'/isce_out', os.listdir('isce_out')[0])+'/dem.crop', os.path.join(root,'2giant'))
+    shutil.copy(os.path.join(root+'/isce_out', os.listdir('isce_out')[0])+'/dem.crop.vrt', os.path.join(root,'2giant'))
+    shutil.copy(os.path.join(root+'/isce_out', os.listdir('isce_out')[0])+'/dem.crop.xml', os.path.join(root,'2giant'))
+    with open('2giant/demfloat32.crop.rsc', 'w') as f:
+        width = xml_kv(xml2, 'property[@name="width"]/value')
+        length = xml_kv(xml2, 'property[@name="length"]/value')
+        LUlat = xml_kv(xml1, 'runGeocode/inputs/maximum_latitude')
+        LUlon = xml_kv(xml1, 'runGeocode/inputs/minimum_longitude')
+        RDlat = xml_kv(xml1, 'runGeocode/inputs/minimum_latitude')
+        RDlon = xml_kv(xml1, 'runGeocode/inputs/maximum_longitude')
+        f.write(rsc_tmp().format(width=width, length=length, LU_lat=LUlat, LU_lon=LUlon, RD_lat=RDlat, RD_lon=RDlon))
+    with open('04_transDEM.sh', 'w') as f:
+        f.write('cd 2giant\n')
+        f.write('imageMath.py -e a --a dem.crop -s BIL -t float32 -o demfloat32.crop\n')
+        f.write('rm dem.crop dem.crop.vrt dem.crop.xml')
+    #os.system('echo "rm dem.crop"')
+
 
 
 def log(logfile):
@@ -452,8 +519,9 @@ if __name__ == '__main__':
     #calbperp('Bperp', dataDate)
     #geobox('TStable.txt', imageHome, DEM, polor, unwrapMethod)
     #runscript(root, '02_geobox.sh')
-    runinsar(max_daydiff, max_perpendicular_baseline, 'TStable.txt', imageHome, DEM, polor, unwrapMethod)
+    #runinsar(max_daydiff, max_perpendicular_baseline, 'TStable.txt', imageHome, DEM, polor, unwrapMethod)
     #runscript(root, '03_runinsar.sh')
-    #draw(dataDate, 'TStable.txt', max_daydiff, max_perpendicular_baseline)
-    #ifglist('TStable.txt', max_daydiff, max_perpendicular_baseline)
-    #isce2giant()
+    draw(dataDate, 'TStable.txt', max_daydiff, max_perpendicular_baseline)
+    ifglist('TStable.txt', max_daydiff, max_perpendicular_baseline)
+    isce2giant('TStable.txt')
+    runscript(root, '04_transDEM.sh')
